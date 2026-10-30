@@ -1,0 +1,38 @@
+name: Build TrollOpenJB-Shortcuts
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Install Theos
+        run: |
+          git clone --depth=1 https://github.com/theos/theos.git
+          cd theos
+          git submodule update --init --recursive
+      
+      - name: Download iOS SDK
+        run: |
+          git clone --depth=1 https://github.com/xybp888/iOS-SDKs.git
+          mv iOS-SDKs/iPhoneOS11.4.sdk theos/sdks/
+      
+      - name: Build Package
+        run: |
+          cd TrollOpenJB-Shortcuts
+          export THEOS=$GITHUB_WORKSPACE/theos
+          make package FINALPACKAGE=1
+      
+      - name: Upload .deb
+        uses: actions/upload-artifact@v3
+        with:
+          name: TrollOpenJB-Shortcuts
+          path: TrollOpenJB-Shortcuts/packages/*.deb
+          retention-days: 30

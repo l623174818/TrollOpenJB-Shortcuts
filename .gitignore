@@ -1,0 +1,7 @@
+.theos/
+*.o
+*.dylib
+packages/
+*.deb
+*.log
+nul

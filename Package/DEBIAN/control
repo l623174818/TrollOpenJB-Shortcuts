@@ -1,0 +1,23 @@
+Package: com.charlieleung.trollopenjb.shortcuts
+Name: TrollOpenJB (Shortcuts Integration)
+Version: 1.3.7-shortcuts
+Architecture: iphoneos-arm64
+Description: TrollOpenJB 分屏插件 - 快捷指令集成版
+ 在 iPhone 上实现 iPad 风格的多窗口分屏功能，支持快捷指令 URL Scheme 调用。
+ .
+ 新增功能:
+ - troll-openjb:// URL Scheme 支持
+ - troj:// 短别名
+ - 53 个快捷指令命令暴露
+ .
+ 使用示例:
+ - troll-openjb://cmd_toggle_personal_hotspot
+ - troll-openjb://cmd_toggle_wifi
+ - troj://cmd_front_app_split
+Maintainer: Charlie Leung + Shortcuts Integration
+Section: Tweaks
+Priority: optional
+Depends: mobilesubstrate, firmware (>= 16.0)
+Tag: role::tweak, interface::shortcut, role::multitasking
+Conflicts: com.charlieleung.trollopenjb (<< 1.3.7)
+Replaces: com.charlieleung.trollopenjb

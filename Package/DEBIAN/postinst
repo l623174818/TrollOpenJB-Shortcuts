@@ -1,0 +1,25 @@
+#!/bin/bash
+# TrollOpenJB 快捷指令集成版 - 安装后脚本
+
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║  TrollOpenJB - 快捷指令集成版 已安装                         ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "📱 快捷指令 URL Scheme:"
+echo "   troll-openjb://<command>"
+echo "   troj://<command>  (短别名)"
+echo ""
+echo "🔗 常用命令示例:"
+echo "   切换热点：troll-openjb://cmd_toggle_personal_hotspot"
+echo "   切换 WiFi:  troll-openjb://cmd_toggle_wifi"
+echo "   前台分屏：troll-openjb://cmd_front_app_split"
+echo "   截图：troll-openjb://cmd_take_screenshot"
+echo ""
+echo "📚 完整命令列表请查看 README-Shortcuts.md"
+echo ""
+echo "⚠️  正在重启 SpringBoard..."
+
+killall SpringBoard || uicache -a
+
+exit 0

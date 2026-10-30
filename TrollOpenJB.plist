@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Filter</key>
+    <dict>
+        <key>Bundles</key>
+        <array>
+            <string>com.apple.springboard</string>
+            <string>com.apple.UIKit</string>
+        </array>
+    </dict>
+    
+    <!-- 快捷指令 URL Scheme 声明 -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>TrollOpenJB Actions</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>troll-openjb</string>
+                <string>troj</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- 描述信息 -->
+    <key>CFBundleName</key>
+    <string>TrollOpenJB</string>
+    
+    <key>CFBundleDisplayName</key>
+    <string>TrollOpen 分屏</string>
+    
+    <key>CFBundleVersion</key>
+    <string>1.3.7</string>
+    
+    <key>CFBundleIdentifier</key>
+    <string>com.charlieleung.trollopenjb</string>
+    
+    <!-- 快捷指令支持的命令列表 -->
+    <key>ShortcutsSupportedCommands</key>
+    <array>
+        <string>cmd_toggle_wifi</string>
+        <string>cmd_toggle_bluetooth</string>
+        <string>cmd_toggle_airplane_mode</string>
+        <string>cmd_toggle_cellular_data</string>
+        <string>cmd_toggle_vpn</string>
+        <string>cmd_toggle_personal_hotspot</string>
+        <string>cmd_toggle_mute</string>
+        <string>cmd_toggle_silent_mode</string>
+        <string>cmd_take_screenshot</string>
+        <string>cmd_take_screenshot_and_edit</string>
+        <string>cmd_screenshot_region</string>
+        <string>cmd_front_app_split</string>
+        <string>cmd_toggle_single_window_mode</string>
+        <string>cmd_respring</string>
+        <string>cmd_reboot_device</string>
+        <string>cmd_activate_siri</string>
+        <string>cmd_toggle_dnd</string>
+        <string>cmd_toggle_low_power_mode</string>
+        <string>cmd_toggle_night_shift</string>
+        <string>cmd_toggle_auto_brightness</string>
+    </array>
+</dict>
+</plist>
