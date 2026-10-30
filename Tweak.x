@@ -91,9 +91,7 @@ static const char *kCommands[] = {
         NSLog(@"[TrollOpenJB] URL: scheme=%@ cmd=%@", url.scheme, cmd);
         if (cmd) {
             SEL sel = NSSelectorFromString(cmd);
-            if ([self respondsToSelector:sel]) {
-                ((void(*)(id, SEL))objc_msgSend)(self, sel);
-            }
+            ((void(*)(id, SEL))objc_msgSend)(self, sel);
         }
         return YES;
     }
