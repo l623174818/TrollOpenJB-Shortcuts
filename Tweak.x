@@ -235,13 +235,7 @@ static NSDictionary<NSString *, NSString *> *CommandNames = @{
                 content:content
                 trigger:nil];  // 立即触发
             
-            [center addNotificationRequest:request completionHandler:^(NSError * _Nullable error) {
-                if (error) {
-                    NSLog(@"[TrollOpenJB] 通知发送失败：%@", error);
-                } else {
-                    NSLog(@"[TrollOpenJB] 通知发送成功：%@", body);
-                }
-            }];
+            [center addNotificationRequest:request];
         } else {
             NSLog(@"[TrollOpenJB] 通知权限未授权，使用 NSLog 记录：%@", body);
         }
