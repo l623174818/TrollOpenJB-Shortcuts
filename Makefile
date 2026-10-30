@@ -30,6 +30,10 @@ TrollOpenJB_PRIVATE_FRAMEWORKS = CoreTelephony Preferences AppSupport
 # 禁用模块系统，Linux 上 Darwin 模块不可用
 TrollOpenJB_CFLAGS = -fobjc-arc -DTHEOS_PACKAGE_SCHEME=rootless -fno-modules
 
+# Rootless 目录结构
+export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 14.0
+export ARCHS = arm64 arm64e
+
 include $(THEOS_MAKE_PATH)/tweak.mk
 
 # 安装后重启 SpringBoard

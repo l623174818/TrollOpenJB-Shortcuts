@@ -35,6 +35,7 @@ jobs:
       - name: Build Package
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
+          export THEOS_PACKAGE_SCHEME=rootless
           chmod 755 layout/DEBIAN/postinst
           make package FINALPACKAGE=1
       
