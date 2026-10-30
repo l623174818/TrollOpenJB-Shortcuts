@@ -21,9 +21,13 @@ jobs:
       
       - name: Download iOS SDK
         run: |
-          git clone --depth=1 https://github.com/xybp888/iOS-SDKs.git
-          mkdir -p theos/sdks
-          mv iOS-SDKs/iPhoneOS11.4.sdk theos/sdks/
+          git clone --depth=1 --filter=blob:none --sparse https://github.com/theos/sdks.git
+          cd sdks
+          git sparse-checkout init --cone
+          git sparse-checkout set iPhoneOS11.4.sdk
+          cd ..
+          mv sdks/iPhoneOS11.4.sdk theos/sdks/
+          rm -rf sdks
       
       - name: Build Package
         run: |
