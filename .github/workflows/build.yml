@@ -18,6 +18,8 @@ jobs:
           git clone --depth=1 https://github.com/theos/theos.git
           cd theos
           git submodule update --init --recursive
+          # Install ldid
+          brew install ldid
       
       - name: Download iOS SDK
         run: |
