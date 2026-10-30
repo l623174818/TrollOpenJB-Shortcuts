@@ -31,7 +31,6 @@ jobs:
       
       - name: Build Package
         run: |
-          cd TrollOpenJB-Shortcuts
           export THEOS=$GITHUB_WORKSPACE/theos
           make package FINALPACKAGE=1
       
