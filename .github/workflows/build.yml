@@ -21,12 +21,13 @@ jobs:
       
       - name: Download iOS SDK
         run: |
+          # 使用 iPhoneOS14.5 SDK (与新版 Xcode 兼容)
           git clone --depth=1 --filter=blob:none --sparse https://github.com/theos/sdks.git
           cd sdks
           git sparse-checkout init --cone
-          git sparse-checkout set iPhoneOS11.4.sdk
+          git sparse-checkout set iPhoneOS14.5.sdk
           cd ..
-          mv sdks/iPhoneOS11.4.sdk theos/sdks/
+          mv sdks/iPhoneOS14.5.sdk theos/sdks/
           rm -rf sdks
       
       - name: Build Package
