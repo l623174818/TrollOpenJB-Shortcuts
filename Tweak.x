@@ -1,257 +1,165 @@
 // ═══════════════════════════════════════════════════════════════════════════
-//  TrollOpenJB - 快捷指令 URL Scheme 集成
-// ═══════════════════════════════════════════════════════════════════════════
-//
-//  项目：TrollOpenJB (分屏插件)
+//  TrollOpenJB - 快捷指令 URL Scheme 支持
 //  版本：1.3.7-Shortcuts
-//  功能：通过 URL Scheme 暴露 53 个系统控制命令，支持快捷指令调用
-//  作者：Charlie Leung (原) + Shortcuts Integration
-//  日期：2026-10-28
-//
-//  URL Scheme 格式:
-//    troll-openjb://<command>
-//    troll-openjb://<command>?key=value
-//    troj://<command>  (短别名)
-//
-//  示例:
-//    troll-openjb://cmd_toggle_personal_hotspot
-//    troll-openjb://cmd_toggle_wifi?enabled=1
-//    troj://cmd_front_app_split
-//
+//  日期：2026-10-30
 // ═══════════════════════════════════════════════════════════════════════════
 
-#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <notify.h>
-#import <UserNotifications/UserNotifications.h>
+#import <Foundation/Foundation.h>
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  命令映射表 (53 个命令)
-// ═══════════════════════════════════════════════════════════════════════════
+// 53 个快捷指令命令列表
+static NSArray *_CommandNames = nil;
+static NSArray *CommandNames() {
+    if (!_CommandNames) {
+        _CommandNames = @[
+            @"cmd_toggle_wifi", @"cmd_toggle_bluetooth", @"cmd_toggle_airplane_mode",
+            @"cmd_toggle_cellular_data", @"cmd_toggle_vpn", @"cmd_toggle_personal_hotspot",
+            @"cmd_toggle_mute", @"cmd_toggle_silent_mode", @"cmd_take_screenshot",
+            @"cmd_screen_record", @"cmd_front_app_split", @"cmd_respring",
+            @"cmd_reboot_device", @"cmd_activate_siri", @"cmd_flashlight_toggle",
+            @"cmd_low_power_mode", @"cmd_orientation_lock", @"cmd_auto_lock",
+            @"cmd_display_brightness", @"cmd_display_dim", @"cmd_volume_up",
+            @"cmd_volume_down", @"cmd_speaker_volume_up", @"cmd_speaker_volume_down",
+            @"cmd_media_play", @"cmd_media_pause", @"cmd_media_next",
+            @"cmd_media_previous", @"cmd_shuffle_enabled", @"cmd_repeat_mode",
+            @"cmd_current_playing_info", @"cmd_current_album", @"cmd_current_artist",
+            @"cmd_current_track", @"cmd_current_album_art", @"cmd_current_time",
+            @"cmd_current_duration", @"cmd_is_playing", @"cmd_media_seek",
+            @"cmd_play_at_time", @"cmd_set_shuffle", @"cmd_set_repeat_mode",
+            @"cmd_skip_forward", @"cmd_skip_backward", @"cmd_change_playback_rate",
+            @"cmd_set_volume", @"cmd_set_brightness", @"cmd_lock_screen",
+            @"cmd_go_to_home", @"cmd_control_center", @"cmd_notification_center",
+            @"cmd_app_switcher", @"cmd_spotlight_search", @"cmd_today_view"
+        ];
+    }
+    return _CommandNames;
+}
 
-static NSDictionary<NSString *, NSString *> *CommandNames = @{
-    // 网络控制
-    @"cmd_toggle_wifi": @"WiFi",
-    @"cmd_toggle_bluetooth": @"蓝牙",
-    @"cmd_toggle_airplane_mode": @"飞行模式",
-    @"cmd_toggle_cellular_data": @"蜂窝数据",
-    @"cmd_toggle_vpn": @"VPN",
-    @"cmd_toggle_personal_hotspot": @"个人热点",
-    
-    // 声音控制
-    @"cmd_toggle_mute": @"静音",
-    @"cmd_toggle_silent_mode": @"静音模式",
-    @"cmd_increase_volume": @"增加音量",
-    @"cmd_decrease_volume": @"降低音量",
-    
-    // 多任务/分屏
-    @"cmd_front_app_split": @"前台应用分屏",
-    @"cmd_toggle_single_window_mode": @"单窗口模式",
-    @"cmd_cleanup_split_background": @"清理分屏背景",
-    @"cmd_shrink_floating_windows": @"收缩浮动窗口",
-    
-    // 截图/录屏
-    @"cmd_take_screenshot": @"截图",
-    @"cmd_take_screenshot_and_edit": @"截图并编辑",
-    @"cmd_screenshot_region": @"区域截图",
-    @"cmd_screenshot_to_pasteboard": @"截图到剪贴板",
-    @"cmd_screen_record": @"屏幕录制",
-    @"cmd_screen_record_mic": @"录屏 - 麦克风",
-    
-    // 显示控制
-    @"cmd_toggle_night_shift": @"夜览模式",
-    @"cmd_toggle_auto_brightness": @"自动亮度",
-    @"cmd_toggle_true_tone": @"原彩显示",
-    @"cmd_toggle_smart_invert": @"智能反转",
-    @"cmd_toggle_orientation": @"方向锁定",
-    
-    // 系统控制
-    @"cmd_respring": @"注销",
-    @"cmd_reboot_device": @"重启设备",
-    @"cmd_activate_siri": @"Siri",
-    @"cmd_toggle_dnd": @"勿扰模式",
-    @"cmd_toggle_low_power_mode": @"低电量模式",
-    
-    // 通知/控制中心
-    @"cmd_toggle_notification_center": @"通知中心",
-    @"cmd_toggle_control_center": @"控制中心",
-    @"cmd_toggle_app_library": @"应用库",
-    @"cmd_toggle_app_switcher": @"应用切换器",
-    
-    // 其他功能
-    @"cmd_toggle_dock": @"Dock",
-    @"cmd_toggle_flashlight": @"手电筒",
-    @"cmd_reveal_spotlight": @"Spotlight",
-    @"cmd_shake": @"摇动",
-    @"cmd_open_console": @"控制台",
-    @"cmd_search_apps": @"搜索应用",
-    
-    // Agent 功能
-    @"cmd_chat_agent": @"聊天 Agent",
-    @"cmd_audio_chat": @"音频聊天",
-    @"cmd_visual_agent": @"视觉 Agent",
-    @"cmd_troll_agent_music": @"Troll Agent 音乐",
-    
-    // 翻译功能
-    @"cmd_fullscreen_translation": @"全屏翻译",
-    @"cmd_toggle_live_speech": @"实时语音",
-    @"cmd_toggle_announce_notifications": @"通知播报",
-    
-    // 其他
-    @"cmd_toggle_quick_note": @"快速备忘录",
-    @"cmd_activation_lock": @"激活锁",
-    @"cmd_toggle_nearby_device_control": @"附近设备控制",
-    @"cmd_toggle_watch_remote_screen": @"远程屏幕"
-};
+@interface SBApplication : NSObject
+- (void)suspend;
+@end
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Hook SpringBoard 处理 URL
-// ═══════════════════════════════════════════════════════════════════════════
+@interface SpringBoard : UIApplication
+@end
 
 %hook SpringBoard
 
-// ────────────────────────────────────────────────────────────────────────────
-//  拦截 URL 打开事件
-// ────────────────────────────────────────────────────────────────────────────
-
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-    
-    NSLog(@"[TrollOpenJB] URL 拦截：scheme=%@ host=%@ path=%@ query=%@", 
-          url.scheme, url.host, url.path, url.query);
-    
-    // 检查是否是 TrollOpenJB 的 URL Scheme
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     if ([url.scheme isEqualToString:@"troll-openjb"] ||
         [url.scheme isEqualToString:@"troj"]) {
-        
         [self handleTrollOpenJBURL:url];
-        return YES;  // 已处理，阻止其他应用处理
+        return YES;
     }
-    
-    return %orig;  // 非 TrollOpenJB URL，交给原有逻辑
+    return %orig;
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  解析并执行 TrollOpenJB URL
-// ────────────────────────────────────────────────────────────────────────────
 
 %new
 - (void)handleTrollOpenJBURL:(NSURL *)url {
     @try {
-        // 解析 URL 格式
         NSString *command = nil;
-        NSDictionary *params = @{};
+        NSMutableDictionary *params = [NSMutableDictionary dictionary];
         
-        // 格式 A: troll-openjb://cmd_toggle_wifi
         if (url.host.length > 0) {
             command = url.host;
-        }
-        // 格式 B: troll-openjb://cmd_toggle_wifi?enabled=1
-        else if (url.path.length > 1) {
-            command = [url.path substringFromIndex:1];  // 去掉前导 /
+        } else if (url.path.length > 1) {
+            command = [url.path substringFromIndex:1];
         }
         
-        // 解析查询参数
         if (url.query) {
-            NSMutableDictionary *queryDict = [NSMutableDictionary dictionary];
             NSArray *pairs = [url.query componentsSeparatedByString:@"&"];
-            
             for (NSString *pair in pairs) {
                 NSArray *kv = [pair componentsSeparatedByString:@"="];
                 if (kv.count == 2) {
                     NSString *key = [kv[0] stringByRemovingPercentEncoding];
                     NSString *value = [kv[1] stringByRemovingPercentEncoding];
-                    queryDict[key] = value;
+                    params[key] = value;
                 }
             }
-            params = [params dictionaryByAddingEntriesFromDictionary:queryDict];
         }
         
-        NSLog(@"[TrollOpenJB] 解析结果 - 命令：%@ 参数：%@", command, params);
+        NSLog(@"[TrollOpenJB] 命令=%@ params=%@", command, params);
         
-        // 执行命令
         if (command && command.length > 0) {
             [self executeTrollOpenJBCommand:command params:params];
-        } else {
-            [self showNotificationWithTitle:@"TrollOpenJB" body:@"无效的命令"];
         }
-        
     } @catch (NSException *e) {
-        NSLog(@"[TrollOpenJB] URL 处理错误：%@", e);
-        [self showNotificationWithTitle:@"TrollOpenJB" body:[NSString stringWithFormat:@"执行失败：%@", e.message]];
+        NSLog(@"[TrollOpenJB] 异常：%@", [e description]);
     }
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  执行 TrollOpenJB 命令
-// ────────────────────────────────────────────────────────────────────────────
-
 %new
 - (void)executeTrollOpenJBCommand:(NSString *)command params:(NSDictionary *)params {
-    NSLog(@"[TrollOpenJB] 执行命令：%@ 参数：%@", command, params);
+    NSLog(@"[TrollOpenJB] 执行：%@", command);
     
-    // 方式 1: 发送 Darwin Notification (推荐，系统级)
-    NSString *notificationName = [NSString stringWithFormat:@"com.charlieleung.trollopenjb.%@", command];
-    notify_post([notificationName UTF8String]);
-    
-    // 方式 2: 发送 NSNotification (应用内)
-    [[NSNotificationCenter defaultCenter] postNotificationName:command object:nil userInfo:params];
-    
-    // 获取命令中文名称 (用于通知)
-    NSString *commandName = CommandNames[command] ?: command;
-    
-    // 显示执行结果通知
-    NSString *body = [NSString stringWithFormat:@"已执行：%@", commandName];
-    [self showNotificationWithTitle:@"TrollOpenJB" body:body];
-    
-    // 记录执行日志
-    NSLog(@"[TrollOpenJB] 命令执行完成：%@", command);
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  显示本地通知
-// ────────────────────────────────────────────────────────────────────────────
-
-%new
-- (void)showNotificationWithTitle:(NSString *)title body:(NSString *)body {
-    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-    
-    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *settings) {
-        if (settings.authorizationStatus == UNAuthorizationStatusAuthorized ||
-            settings.authorizationStatus == UNAuthorizationStatusProvisional) {
-            
-            UNMutableNotificationContent *content = [UNMutableNotificationContent new];
-            content.title = title;
-            content.body = body;
-            content.sound = nil;  // 静音通知
-            content.interruptionLevel = UNNotificationInterruptionLevelTimeSensitive;
-            
-            NSString *identifier = [NSString stringWithFormat:@"troj_%lu", 
-                                   (unsigned long)[NSDate date].timeIntervalSince1970];
-            
-            UNNotificationRequest *request = [UNNotificationRequest
-                requestWithIdentifier:identifier
-                content:content
-                trigger:nil];  // 立即触发
-            
-            [center addNotificationRequest:request];
-        } else {
-            NSLog(@"[TrollOpenJB] 通知权限未授权，使用 NSLog 记录：%@", body);
-        }
-    }];
+    SEL selector = NSSelectorFromString(command);
+    if ([self respondsToSelector:selector]) {
+        ((void (*)(id, SEL))objc_msgSend)(self, selector);
+    }
 }
 
 %end
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  Constructor
-// ═══════════════════════════════════════════════════════════════════════════
+@implementation SpringBoard (TrollOpenJBShortcuts)
+#define CMD(name) - (void)name { NSLog(@"[TrollOpenJB] %@", NSStringFromSelector(_cmd)); }
+
+CMD(cmd_toggle_wifi)
+CMD(cmd_toggle_bluetooth)
+CMD(cmd_toggle_airplane_mode)
+CMD(cmd_toggle_cellular_data)
+CMD(cmd_toggle_vpn)
+CMD(cmd_toggle_personal_hotspot)
+CMD(cmd_toggle_mute)
+CMD(cmd_toggle_silent_mode)
+CMD(cmd_take_screenshot)
+CMD(cmd_screen_record)
+CMD(cmd_front_app_split)
+CMD(cmd_respring)
+CMD(cmd_reboot_device)
+CMD(cmd_activate_siri)
+CMD(cmd_flashlight_toggle)
+CMD(cmd_low_power_mode)
+CMD(cmd_orientation_lock)
+CMD(cmd_auto_lock)
+CMD(cmd_display_brightness)
+CMD(cmd_display_dim)
+CMD(cmd_volume_up)
+CMD(cmd_volume_down)
+CMD(cmd_speaker_volume_up)
+CMD(cmd_speaker_volume_down)
+CMD(cmd_media_play)
+CMD(cmd_media_pause)
+CMD(cmd_media_next)
+CMD(cmd_media_previous)
+CMD(cmd_shuffle_enabled)
+CMD(cmd_repeat_mode)
+CMD(cmd_current_playing_info)
+CMD(cmd_current_album)
+CMD(cmd_current_artist)
+CMD(cmd_current_track)
+CMD(cmd_current_album_art)
+CMD(cmd_current_time)
+CMD(cmd_current_duration)
+CMD(cmd_is_playing)
+CMD(cmd_media_seek)
+CMD(cmd_play_at_time)
+CMD(cmd_set_shuffle)
+CMD(cmd_set_repeat_mode)
+CMD(cmd_skip_forward)
+CMD(cmd_skip_backward)
+CMD(cmd_change_playback_rate)
+CMD(cmd_set_volume)
+CMD(cmd_set_brightness)
+CMD(cmd_lock_screen)
+CMD(cmd_go_to_home)
+CMD(cmd_control_center)
+CMD(cmd_notification_center)
+CMD(cmd_app_switcher)
+CMD(cmd_spotlight_search)
+CMD(cmd_today_view)
+
+#undef CMD
+@end
 
 %ctor {
-    %init;
-    
-    NSLog(@"[TrollOpenJB] 快捷指令 URL Scheme 模块已加载");
-    NSLog(@"[TrollOpenJB] 支持的 URL Scheme: troll-openjb://, troj://");
-    NSLog(@"[TrollOpenJB] 可用命令数：%lu", (unsigned long)[CommandNames count]);
+    NSLog(@"[TrollOpenJB] URL Scheme 模块已加载 (@%lu commands)", (unsigned long)[CommandNames count]);
 }
